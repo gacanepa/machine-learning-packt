@@ -14,6 +14,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 
 # Load the training dataset 'SMSSpamCollection' into variable 'data'
+# The file needs to be located in the same directory as detector.py. Otherwise, a full path is required as argument to the open() method
 data = [line.rstrip() for line in open('SMSSpamCollection')]
 
 # Print number of messages

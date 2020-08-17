@@ -1,6 +1,6 @@
 # machine-learning-packt
 
-This repository is used to store the Python code found in the book "What you need to know about Machine Learning", written by me, reviewed by Walter Molina, and published by Packt Publishing.
+This repository is used to store the Python code found in the book [What you need to know about Machine Learning](https://1drv.ms/b/s!AotpOipZ2Sr2hhnufbxFpn_ro8_m?e=UhDxd7), written by [me](https://ar.linkedin.com/in/gacanepa), reviewed by [Walter Molina](https://www.linkedin.com/in/waltermolina/), and published by Packt Publishing.
 
 # Author bio
 

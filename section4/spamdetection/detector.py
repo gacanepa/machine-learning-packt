@@ -1,71 +1,67 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Nov 12 12:49:46 2016
-
-@author: amnesia
-"""
-
-# Import libraries
+# Import the libraries we will use
 import csv
-from textblob import TextBlob
-import pandas
 import numpy as np
+import pandas
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
+from textblob import TextBlob
 
-# Load the training dataset 'SMSSpamCollection' into variable 'data'
-# The file needs to be located in the same directory as detector.py. Otherwise, a full path is required as argument to the open() method
-data = [line.rstrip() for line in open('SMSSpamCollection')]
 
-# Print number of messages
-print ''
-print 'The training dataset has a total of', len(data), 'records'
-print ''
+def read_dataset():
+    # Load the SMSSpamCollection training dataset
+    with open("SMSSpamCollection") as sms_spam_collection:
+        training_dataset = [line.strip() for line in sms_spam_collection]
+        print(f"The training dataset has a total of {len(training_dataset)} records")
+    # Pre-process the dataset and add column names (class for spam or ham, message for the text)
+    raw_data = pandas.read_csv(
+        "SMSSpamCollection",
+        sep="\t",
+        quoting=csv.QUOTE_NONE,
+        names=["class", "message"],
+    )
+    # First 5 messages
+    print(raw_data.head())
 
-"""
-Read the dataset. Specify the field separator is a tab instead of a comma.
-Additionally, add column captions ('class' and 'message') for the two fields in the dataset.
-To preserve quotations in messages, use QUOTE_NONE.
-"""
-data = pandas.read_csv('SMSSpamCollection', sep='\t', quoting=csv.QUOTE_NONE,
-                           names=["class", "message"])
+    # Classification
+    print(raw_data.groupby("class").count())
 
-# Convert each word into its base form
-def WordsIntoBaseForm(message):
-    message = unicode(message, 'utf8').lower()
-    words = TextBlob(message).words
-    return [word.lemma for word in words]
+    return raw_data
 
-# Convert each message into a vector
-trainingVector = CountVectorizer(analyzer=WordsIntoBaseForm).fit(data['message'])
 
-# View occurrence of words in an arbitrary vector. Use 9 for vector #10.
-message10 = trainingVector.transform([data['message'][9]])
-print message10
-print ''
+def words_into_base_form(message_words):
+    message = str(message_words).lower()
+    words_base = TextBlob(message).words
+    return [word.lemma for word in words_base]
 
-# Print message #10 for comparison
-print data['message'][9]
-print ''
-# Identify repeated words
-print 'First word that appears twice:', trainingVector.get_feature_names()[3437]
-print ''
-print 'Word that appears three times:', trainingVector.get_feature_names()[5192]
-print ''
 
-# Bag-of-words for the entire training dataset
-messagesBagOfWords = trainingVector.fit_transform(data['message'].values)
+# Entry point for the application
+def main():
+    data = read_dataset()
 
-# Weight of words in the entire training dataset - Term Frequency and Inverse Document Frequency
-messagesTfidf = TfidfTransformer().fit(messagesBagOfWords).transform(messagesBagOfWords)
+    training_vector = CountVectorizer(analyzer=words_into_base_form).fit(
+        data.get("message")
+    )
 
-# Train the model
-spamDetector = MultinomialNB().fit(messagesTfidf, data['class'].values)
+    # Let's see the classification of the 10th message
+    message10 = training_vector.transform([data.get("message")[9]])
+    print(message10)
 
-# Test message
-example = ['England v Macedonia - dont miss the goals/team news. Txt ENGLAND to 99999']
+    # Bag of words from the entire dataset
+    bag_of_words = training_vector.fit_transform(data.get("message").values)
 
-# Result
-checkResult = spamDetector.predict(trainingVector.transform(example))[0]
+    # Weight of words (term frequency and inverse document frequency)
+    messages_tf_idf = TfidfTransformer().fit(bag_of_words).transform(bag_of_words)
 
-print 'The message [',example[0],'] has been classified as', checkResult
+    # Train the model
+    spam_detector = MultinomialNB().fit(messages_tf_idf, data.get("class").values)
+
+    # Play with variations of the messages found in the training dataset
+    example = ["My mom loves me and I love her"]
+
+    result = spam_detector.predict(training_vector.transform(example))[0]
+
+    print(f"The message '{example[0]}' has been classified as {result}")
+
+
+if __name__ == "__main__":
+    main()
